@@ -6,14 +6,14 @@ from datetime import datetime, timedelta
 st.set_page_config(page_title="맞춤형 입찰 알리미", layout="wide")
 st.title("📡 실시간 맞춤형 입찰 공고 리스트")
 
-# --- 설정 (61203561a5f6b1757e496997889aa776c9484657a36d4aaea2de18b25192393b) ---
+# --- 설정 (발급받은 인증키를 여기에 입력하세요) ---
 API_KEY = "61203561a5f6b1757e496997889aa776c9484657a36d4aaea2de18b25192393b" 
 # ------------------------------------------
 
 def fetch_g2b_data():
-    # 1. 날짜 설정 (오늘부터 30일 전까지)
+    # 1. 날짜 설정 (오늘부터 7일 전까지)
     end_date = datetime.now().strftime('%Y%m%d%H%M')
-    start_date = (datetime.now() - timedelta(days=30)).strftime('%Y%m%d%H%M')
+    start_date = (datetime.now() - timedelta(days=7)).strftime('%Y%m%d%H%M')
     
     url = 'http://apis.data.go.kr/1230000/BidPublicInfoService05/getBidPblancListInfoPrcsng01'
     
