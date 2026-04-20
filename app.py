@@ -11,9 +11,9 @@ API_KEY = "61203561a5f6b1757e496997889aa776c9484657a36d4aaea2de18b25192393b"
 # ------------------------------------------
 
 def fetch_g2b_data():
-    # 1. 날짜 설정 (오늘부터 7일 전까지)
+    # 1. 날짜 설정 (오늘부터 30일 전까지)
     end_date = datetime.now().strftime('%Y%m%d%H%M')
-    start_date = (datetime.now() - timedelta(days=7)).strftime('%Y%m%d%H%M')
+    start_date = (datetime.now() - timedelta(days=30)).strftime('%Y%m%d%H%M')
     
     url = 'http://apis.data.go.kr/1230000/BidPublicInfoService05/getBidPblancListInfoPrcsng01'
     
