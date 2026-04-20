@@ -11,15 +11,15 @@ API_KEY = "61203561a5f6b1757e496997889aa776c9484657a36d4aaea2de18b25192393b"
 # ------------------------------------------
 
 def fetch_g2b_data():
-    # 1. 날짜 설정 (오늘부터 7일 전까지)
+    # 1. 날짜 설정 (오늘부터 30일 전까지)
     end_date = datetime.now().strftime('%Y%m%d%H%M')
-    start_date = (datetime.now() - timedelta(days=7)).strftime('%Y%m%d%H%M')
+    start_date = (datetime.now() - timedelta(days=30)).strftime('%Y%m%d%H%M')
     
     url = 'http://apis.data.go.kr/1230000/BidPublicInfoService05/getBidPblancListInfoPrcsng01'
     
     # 2. 검색 키워드 설정
     keywords = [
-        "뉴미디어", "유튜브", "sns", "온라인홍보", "농촌", 
+        "뉴미디어", "유튜브", "sns", "온라인홍보", "농촌", "여행", "친환경"
         "문화", "관광", "서포터즈", "외국인", "글로벌", "홍보", "캠페인"
     ]
     keyword_query = "|".join(keywords) # 키워드들을 '또는(OR)' 조건으로 묶음
@@ -66,7 +66,7 @@ def fetch_g2b_data():
         return pd.DataFrame()
 
 # 앱 화면 구성
-st.markdown(f"### 🔍 검색 조건: 1억 이상 / 7일 이내 게시 / {len(['뉴미디어', '유튜브', 'sns', '온라인홍보', '농촌', '문화', '관광', '서포터즈', '외국인', '글로벌', '홍보', '캠페인'])}개 핵심 키워드")
+st.markdown(f"### 🔍 검색 조건: 1억 이상 / 30일 이내 게시 / {len(['뉴미디어', '유튜브', 'sns', '온라인홍보', '농촌', '문화', '관광', '서포터즈', '외국인', '글로벌', '홍보', '캠페인'])}개 핵심 키워드")
 
 if st.button("최신 공고 데이터 가져오기"):
     with st.spinner('나라장터 서버에서 실시간 데이터를 분석 중입니다...'):
