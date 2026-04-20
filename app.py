@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 st.set_page_config(page_title="맞춤형 입찰 알리미", layout="wide")
 st.title("📡 실시간 맞춤형 입찰 공고 리스트")
 
-# --- 설정 (발급받은 인증키를 여기에 입력하세요) ---
+# --- 설정 (61203561a5f6b1757e496997889aa776c9484657a36d4aaea2de18b25192393b) ---
 API_KEY = "61203561a5f6b1757e496997889aa776c9484657a36d4aaea2de18b25192393b" 
 # ------------------------------------------
 
