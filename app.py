@@ -1,57 +1,61 @@
 import streamlit as st
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
 
-st.set_page_config(page_title="나라장터 수동검색기", layout="wide")
-st.title("🔍 나라장터 실시간 수동 검색 (크롤링)")
+st.set_page_config(page_title="실시간 나라장터 입찰 알리미", layout="wide")
+st.title("📡 실시간 맞춤형 입찰 리스트")
 
-def crawl_g2b():
-    # 나라장터 검색 URL (뉴미디어, 유튜브, SNS, 서포터즈 통합 검색)
-    # 실제 구현 시에는 검색 파라미터를 복잡하게 조합해야 하므로, 핵심 로직만 구현합니다.
-    url = "https://www.g2b.go.kr:8101/ep/tbid/tbidList.do"
+API_KEY = "61203561a5f6b1757e496997889aa776c9484657a36d4aaea2de18b25192393b" 
+# ------------------------------------------
+
+def fetch_g2b_data():
+    # 오늘 기준 최근 7일간의 데이터를 가져옵니다.
+    end_date = datetime.now().strftime('%Y%m%d%H%M')
+    start_date = (datetime.now() - timedelta(days=7)).strftime('%Y%m%d%H%M')
     
-    # 검색 조건 설정 (최근 7일, 홍보 관련 키워드 등)
+    url = 'http://apis.data.go.kr/1230000/BidPublicInfoService05/getBidPblancListInfoPrcsng01'
     params = {
-        'searchCnt': '30',
-        'bidNm': '홍보 유튜브 SNS', # 검색어
-        'bidType': '1', # 물품/서비스 등
-        'fromBidDt': '2026/04/13', # 시작일 (자동 계산 로직 필요)
-        'toBidDt': '2026/04/20',   # 종료일
-        'budget': '100000000'      # 1억 이상
+        'serviceKey': API_KEY,
+        'numOfRows': '100',
+        'pageNo': '1',
+        'inqryDiv': '1',
+        'inqryBgnDt': start_date,
+        'inqryEndDt': end_date,
+        'type': 'json'
     }
 
     try:
         response = requests.get(url, params=params)
-        soup = BeautifulSoup(response.text, 'html.parser')
+        items = response.json()['response']['body']['items']
+        df = pd.DataFrame(items)
         
-        # 나라장터 테이블의 공고 목록 추출
-        table = soup.find('table', {'class': 'table_list'})
-        rows = table.find_all('tr')[1:] # 헤더 제외
+        # 필요한 컬럼만 추출 및 이름 변경
+        df = df[['bidNtceNm', 'bdgtAmt', 'ntceSpecNm', 'bidNtceDtlUrl']]
+        df.columns = ['공고명', '예산', '자격요건', '링크']
         
-        data = []
-        for row in rows:
-            cols = row.find_all('td')
-            if len(cols) > 1:
-                title = cols[3].text.strip()
-                price = cols[7].text.strip().replace(',', '') # 예산
-                link = "https://www.g2b.go.kr" + cols[3].find('a')['href']
-                
-                data.append({"공고명": title, "예산": price, "링크": link})
+        # 예산 숫자 형변환 및 필터링 (1억 이상)
+        df['예산'] = pd.to_numeric(df['예산'], errors='coerce').fillna(0)
+        df = df[df['예산'] >= 100000000]
         
-        return pd.DataFrame(data)
-    except Exception as e:
-        st.error(f"데이터를 가져오는데 실패했습니다: {e}")
+        # 키워드 필터링 (뉴미디어, 유튜브, SNS, 서포터즈)
+        keywords = '뉴미디어|유튜브|SNS|서포터즈'
+        df = df[df['공고명'].str.contains(keywords, na=False)]
+        
+        # 순위 점수 매기기
+        df['점수'] = 0
+        df.loc[df['자격요건'].str.contains('직접생산', na=False), '점수'] += 20
+        df = df.sort_values(by=['점수', '예산'], ascending=False)
+        
+        return df
+    except:
         return pd.DataFrame()
 
-if st.button("지금 바로 나라장터 검색하기"):
-    with st.spinner('사이트에서 직접 검색 결과를 가져오는 중...'):
-        df = crawl_g2b()
-        if not df.empty:
-            # 점수 매기기 로직 추가
-            df['예산'] = pd.to_numeric(df['예산'], errors='coerce')
-            df = df.sort_values(by='예산', ascending=False)
-            st.write(f"✅ 검색된 공고 {len(df)}건")
-            st.dataframe(df)
+if st.button("새로운 데이터 불러오기"):
+    with st.spinner('나라장터에서 최신 공고를 찾는 중...'):
+        result = fetch_g2b_data()
+        if not result.empty:
+            st.write(f"✅ 총 {len(result)}건의 맞춤 공고를 찾았습니다.")
+            st.dataframe(result)
         else:
-            st.info("검색 조건에 맞는 공고가 없습니다.")
+            st.warning("조건에 맞는 새로운 공고가 현재 없습니다.")
